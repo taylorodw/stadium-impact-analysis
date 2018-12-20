@@ -14,7 +14,8 @@ output_file('hhincome_pctpoverty.html')
 source = ColumnDataSource(df_pcts)
 
 # formatting the tooltip for hover-over behavior
-hover = HoverTool(tooltips=[("County", "@NAME")])
+# add percent poverty and household income
+hover = HoverTool(tooltips=[("County", "@NAME"), ("% Poverty", "@pctpoverty{1.11%}"), ("Average Household Income (USD)", "@hhincomeE")])
 
 # formatting the graph with labels
 plot = figure(x_axis_label='Average Household Income (dollars)', y_axis_label='Percentage of population in poverty')
