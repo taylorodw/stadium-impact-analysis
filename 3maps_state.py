@@ -1,0 +1,157 @@
+# This file will generate 3 maps - poverty rate, unemployment rate, and food stamp/SNAP usage rate
+# This one does the whole state, it has the county filtering commented out
+# It's set up for New York but that can easily be changed
+# The script can be adapted to map different parameters from our dataframe too
+# the first time you run this, and after importing bokeh, you'll have to run bokeh.sampledata.download() to get the county boundaries
+
+from bokeh.io import show, output_file
+from bokeh.models import LinearColorMapper, ColorBar, Label
+from bokeh.models.tickers import ContinuousTicker, SingleIntervalTicker
+from bokeh.palettes import Viridis10 as palette
+from bokeh.plotting import figure
+from bokeh.sampledata.us_counties import data as counties
+from bokeh.layouts import row
+import pandas as pd
+import tkinter as tk
+from tkinter import filedialog
+root = tk.Tk()
+root.withdraw()
+
+palette.reverse()
+
+#def get_input():
+file_input = filedialog.askopenfilename()
+print("Selected: " + file_input)
+
+# Naming
+print("Title the maps: ")
+input_state = input("Name of the state > ")
+input_year = input("Year of the map > ")
+desired_filename = input("Output filename > ")
+parsed_filename = desired_filename + ".html"
+print(parsed_filename)
+
+povertytitle = input_state + " Poverty Rate, " + input_year
+fsratetitle = input_state + " Food Stamp/SNAP use, " + input_year
+unemptitle = input_state + " Unemployment Rate, " + input_year
+
+# run the function that should inform the rest of the script
+#get_input()
+
+datafile = file_input
+df_pcts = pd.read_csv(datafile)
+df_stats = df_pcts[['NAME', 'pctpoverty', 'pctfoodstamps', 'unemploymentrate']]
+
+# county_filter = ['Sullivan County, New York', 'Ulster County, New York', 'Dutchess County, New York', 'Orange County, New York', 'Putnam County, New York', 'Rockland County, New York', 'Westchester County, New York', 'Bronx County, New York', 'New York County, New York', 'Queens County, New York', 'Kings County, New York', 'Richmond County, New York', 'Nassau County, New York', 'Suffolk County, New York']
+
+#df_filter = df_stats_unfiltered['NAME'].isin(county_filter)
+#df_stats = df_stats_unfiltered[df_filter]
+
+# is this a lambda function? a dictionary?
+counties = {
+  code: county for code, county in counties.items() if county["state"] == "ny"
+}
+
+# getting x/y coords from the lon/lat in dataframe county
+county_xs = [county["lons"] for county in counties.values()]
+county_ys = [county["lats"] for county in counties.values()]
+
+# getting the data
+county_names = df_stats['NAME']
+county_poverty = df_stats['pctpoverty']
+county_fsrate = df_stats['pctfoodstamps']
+county_unemprate = df_stats['unemploymentrate']
+pov_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['pctpoverty'].max())
+unemp_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['unemploymentrate'].max())
+fs_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['pctfoodstamps'].max())
+
+
+# assigning data to shorter variables in order to feed them into bokeh
+data=dict(
+  x=county_xs,
+  y=county_ys,
+  name=county_names,
+  poverty=county_poverty,
+  fsrate=county_fsrate,
+  unemprate=county_unemprate
+)
+
+
+output_file(parsed_filename)
+
+TOOLS = "pan,wheel_zoom,reset,hover,save"
+
+poverty = figure(
+  title=povertytitle, tools=TOOLS,
+  x_axis_location=None, y_axis_location=None,
+  tooltips=[
+    ("Name", "@name"), ("Poverty %", "@poverty{1.11%}"), ("(Long, Lat)", "($x, $y)")
+  ]
+)
+poverty.grid.grid_line_color = None
+poverty.hover.point_policy = "follow_mouse"
+
+# using the patches glyph on poverty
+poverty.patches('x', 'y', source=data,
+  fill_color={'field': 'poverty', 'transform': pov_color_mapper},
+  fill_alpha=1, line_color="white", line_width=0.5)
+
+fsrate = figure(
+  title=fsratetitle, tools=TOOLS,
+  x_axis_location=None, y_axis_location=None,
+  tooltips=[
+    ("Name", "@name"), ("SNAP %", "@fsrate{1.11%}"), ("(Long, Lat)", "($x, $y)")
+  ]
+)
+fsrate.grid.grid_line_color = None
+poverty.hover.point_policy = "follow_mouse"
+
+# using the patches glyph on fsrate
+fsrate.patches('x', 'y', source=data,
+  fill_color={'field': 'fsrate', 'transform': fs_color_mapper},
+  fill_alpha=1, line_color="white", line_width=0.5)
+
+unemprate = figure(
+  title=unemptitle, tools=TOOLS,
+  x_axis_location=None, y_axis_location=None,
+  tooltips=[
+    ("Name", "@name"), ("Unemployment Rate", "@unemprate{1.11%}"), ("(Long, Lat)", "($x, $y)")
+  ]
+)
+unemprate.grid.grid_line_color = None
+unemprate.hover.point_policy = "follow_mouse"
+
+# using the patches glyph on fsrate
+unemprate.patches('x', 'y', source=data,
+  fill_color={'field': 'unemprate', 'transform': unemp_color_mapper},
+  fill_alpha=1, line_color="white", line_width=0.5)
+
+# making a legend
+pov_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=df_stats['pctpoverty'].max()*100), ticker=SingleIntervalTicker(interval=1), title="Population in poverty (%)",
+                     label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
+
+unemp_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=(df_stats['unemploymentrate'].max()*100)), ticker=SingleIntervalTicker(interval=.5), title="Unemployment rate (%)",
+                     label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
+
+fs_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=(df_stats['pctfoodstamps'].max()*100)), ticker=SingleIntervalTicker(interval=1), title="Food Stamps/SNAP use (%)",
+                     label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
+
+# adding the legend below each map
+poverty.add_layout(pov_color_bar, 'below')
+unemprate.add_layout(unemp_color_bar, 'below')
+fsrate.add_layout(fs_color_bar, 'below')
+
+# citing sources
+citation = Label(x=0, y=0, x_units='screen', y_units='screen', text='Source: US Census American Community Survey', border_line_color=None, background_fill_color='white', background_fill_alpha=0.7)
+poverty.add_layout(citation)
+
+# arranging our maps in a row
+layout = row(poverty, unemprate, fsrate)
+
+# linking the zoom/pan
+unemprate.x_range = poverty.x_range
+fsrate.x_range = poverty.x_range
+unemprate.y_range = poverty.y_range
+fsrate.y_range = poverty.y_range
+
+show(layout)
