@@ -19,7 +19,7 @@ root.withdraw()
 
 palette.reverse()
 
-#def get_input():
+# getting the csv file
 file_input = filedialog.askopenfilename()
 print("Selected: " + file_input)
 
@@ -30,24 +30,25 @@ input_year = input("Year of the map > ")
 desired_filename = input("Output filename > ")
 parsed_filename = desired_filename + ".html"
 print(parsed_filename)
+output_file(parsed_filename)
 
+# parsing name inputs
 povertytitle = input_state + " Poverty Rate, " + input_year
 fsratetitle = input_state + " Food Stamp/SNAP use, " + input_year
 unemptitle = input_state + " Unemployment Rate, " + input_year
 
-# run the function that should inform the rest of the script
-#get_input()
-
+# creating dataframes and filter to stats we'll use
 datafile = file_input
 df_pcts = pd.read_csv(datafile)
-df_stats_unfiltered = df_pcts[['NAME', 'pctpoverty', 'pctfoodstamps', 'unemploymentrate']]
+df_stats_unfiltered = df_pcts[['totalpopE', 'NAME', 'pctpoverty', 'pctfoodstamps', 'unemploymentrate']]
 
+# listing the counties we want the map to show
 county_filter = ['Sullivan County, New York', 'Ulster County, New York', 'Dutchess County, New York', 'Orange County, New York', 'Putnam County, New York', 'Rockland County, New York', 'Westchester County, New York', 'Bronx County, New York', 'New York County, New York', 'Queens County, New York', 'Kings County, New York', 'Richmond County, New York', 'Nassau County, New York', 'Suffolk County, New York']
 
 df_filter = df_stats_unfiltered['NAME'].isin(county_filter)
 df_stats = df_stats_unfiltered[df_filter]
 
-# is this a lambda function? a dictionary?
+# filtering counties
 counties = {
   code: county for code, county in counties.items() if county["state"] == "ny" and (county["detailed name"] in county_filter)
 }
@@ -57,35 +58,37 @@ county_xs = [county["lons"] for county in counties.values()]
 county_ys = [county["lats"] for county in counties.values()]
 
 # getting the data
+county_pop = df_stats['totalpopE']
 county_names = df_stats['NAME']
 county_poverty = df_stats['pctpoverty']
 county_fsrate = df_stats['pctfoodstamps']
 county_unemprate = df_stats['unemploymentrate']
+
+# setting up color mapping to data
 pov_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['pctpoverty'].max())
 unemp_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['unemploymentrate'].max())
 fs_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['pctfoodstamps'].max())
 
-
-# assigning data to shorter variables in order to feed them into bokeh
+# assigning data to dictionary in order to feed them into bokeh
 data=dict(
   x=county_xs,
   y=county_ys,
   name=county_names,
   poverty=county_poverty,
   fsrate=county_fsrate,
-  unemprate=county_unemprate
+  unemprate=county_unemprate,
+  totpop=county_pop
 )
 
-
-output_file(parsed_filename)
-
+# assigning plot tools
 TOOLS = "pan,wheel_zoom,reset,hover,save"
 
+# generating the poverty plot
 poverty = figure(
-  title=povertytitle, tools=TOOLS,
+  title=povertytitle, tools=TOOLS, toolbar_location=None,
   x_axis_location=None, y_axis_location=None,
   tooltips=[
-    ("Name", "@name"), ("Poverty %", "@poverty{1.11%}"), ("(Long, Lat)", "($x, $y)")
+    ("Name", "@name"), ("Population", "@totpop"), ("Poverty %", "@poverty{1.11%}"), ("(Long, Lat)", "($x, $y)")
   ]
 )
 poverty.grid.grid_line_color = None
@@ -96,11 +99,12 @@ poverty.patches('x', 'y', source=data,
   fill_color={'field': 'poverty', 'transform': pov_color_mapper},
   fill_alpha=1, line_color="white", line_width=0.5)
 
+# generating the SNAP plot
 fsrate = figure(
-  title=fsratetitle, tools=TOOLS,
+  title=fsratetitle, tools=TOOLS, toolbar_location=None,
   x_axis_location=None, y_axis_location=None,
   tooltips=[
-    ("Name", "@name"), ("SNAP %", "@fsrate{1.11%}"), ("(Long, Lat)", "($x, $y)")
+    ("Name", "@name"), ("Population", "@totpop"), ("SNAP %", "@fsrate{1.11%}"), ("(Long, Lat)", "($x, $y)")
   ]
 )
 fsrate.grid.grid_line_color = None
@@ -111,11 +115,12 @@ fsrate.patches('x', 'y', source=data,
   fill_color={'field': 'fsrate', 'transform': fs_color_mapper},
   fill_alpha=1, line_color="white", line_width=0.5)
 
+# generating the unemployment plot
 unemprate = figure(
-  title=unemptitle, tools=TOOLS,
+  title=unemptitle, tools=TOOLS, toolbar_location=None,
   x_axis_location=None, y_axis_location=None,
   tooltips=[
-    ("Name", "@name"), ("Unemployment Rate", "@unemprate{1.11%}"), ("(Long, Lat)", "($x, $y)")
+    ("Name", "@name"), ("Population", "@totpop"), ("Unemployment Rate", "@unemprate{1.11%}"), ("(Long, Lat)", "($x, $y)")
   ]
 )
 unemprate.grid.grid_line_color = None
@@ -125,6 +130,11 @@ unemprate.hover.point_policy = "follow_mouse"
 unemprate.patches('x', 'y', source=data,
   fill_color={'field': 'unemprate', 'transform': unemp_color_mapper},
   fill_alpha=1, line_color="white", line_width=0.5)
+
+# making scroll active by default
+poverty.toolbar.active_scroll = poverty.select_one(WheelZoomTool)
+fsrate.toolbar.active_scroll = fsrate.select_one(WheelZoomTool)
+unemprate.toolbar.active_scroll = unemprate.select_one(WheelZoomTool)
 
 # making a legend
 pov_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=df_stats['pctpoverty'].max()*100), ticker=SingleIntervalTicker(interval=1), title="Population in poverty (%)",
@@ -141,17 +151,17 @@ poverty.add_layout(pov_color_bar, 'below')
 unemprate.add_layout(unemp_color_bar, 'below')
 fsrate.add_layout(fs_color_bar, 'below')
 
+# linking the zoom/pan
+unemprate.x_range = poverty.x_range
+fsrate.x_range = poverty.x_range
+unemprate.y_range = poverty.y_range
+fsrate.y_range = poverty.y_range
+
 # citing sources
 citation = Label(x=0, y=0, x_units='screen', y_units='screen', text='Source: US Census American Community Survey', border_line_color=None, background_fill_color='white', background_fill_alpha=0.7)
 poverty.add_layout(citation)
 
 # arranging our maps in a row
 layout = row(poverty, unemprate, fsrate)
-
-# linking the zoom/pan
-unemprate.x_range = poverty.x_range
-fsrate.x_range = poverty.x_range
-unemprate.y_range = poverty.y_range
-fsrate.y_range = poverty.y_range
 
 show(layout)
