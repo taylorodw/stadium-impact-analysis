@@ -5,7 +5,7 @@
 # the first time you run this, and after importing bokeh, you'll have to run bokeh.sampledata.download() to get the county boundaries
 
 from bokeh.io import show, output_file
-from bokeh.models import LinearColorMapper, ColorBar, Label
+from bokeh.models import LinearColorMapper, ColorBar, Label, WheelZoomTool
 from bokeh.models.tickers import ContinuousTicker, SingleIntervalTicker
 from bokeh.palettes import Viridis10 as palette
 from bokeh.plotting import figure
