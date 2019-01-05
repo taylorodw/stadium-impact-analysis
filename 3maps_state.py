@@ -7,7 +7,7 @@
 from bokeh.io import show, output_file
 from bokeh.models import LinearColorMapper, ColorBar, Label, WheelZoomTool
 from bokeh.models.tickers import ContinuousTicker, SingleIntervalTicker
-from bokeh.palettes import Viridis10 as palette
+from bokeh.palettes import viridis
 from bokeh.plotting import figure
 from bokeh.sampledata.us_counties import data as counties
 from bokeh.layouts import row
@@ -16,8 +16,6 @@ import tkinter as tk
 from tkinter import filedialog
 root = tk.Tk()
 root.withdraw()
-
-palette.reverse()
 
 # getting the csv file
 file_input = filedialog.askopenfilename()
@@ -65,9 +63,15 @@ county_fsrate = df_stats['pctfoodstamps']
 county_unemprate = df_stats['unemploymentrate']
 
 # setting up color mapping to data
-pov_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['pctpoverty'].max())
-unemp_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['unemploymentrate'].max())
-fs_color_mapper = LinearColorMapper(palette=palette, low=0.01, high=df_stats['pctfoodstamps'].max())
+pov_palette = viridis(11)
+unemp_palette = viridis(14)
+fs_palette = viridis(13)
+pov_palette.reverse()
+unemp_palette.reverse()
+fs_palette.reverse()
+pov_color_mapper = LinearColorMapper(palette=pov_palette, low=0, high=0.11)
+unemp_color_mapper = LinearColorMapper(palette=unemp_palette, low=0, high=0.07)
+fs_color_mapper = LinearColorMapper(palette=fs_palette, low=0, high=0.13)
 
 # assigning data to dictionary in order to feed them into bokeh
 data=dict(
@@ -137,13 +141,13 @@ fsrate.toolbar.active_scroll = fsrate.select_one(WheelZoomTool)
 unemprate.toolbar.active_scroll = unemprate.select_one(WheelZoomTool)
 
 # making a legend
-pov_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=df_stats['pctpoverty'].max()*100), ticker=SingleIntervalTicker(interval=1), title="Population in poverty (%)",
+pov_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=pov_palette, low=0, high=11), ticker=SingleIntervalTicker(interval=1), title="Population in poverty (%)",
                      label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
 
-unemp_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=(df_stats['unemploymentrate'].max()*100)), ticker=SingleIntervalTicker(interval=.5), title="Unemployment rate (%)",
+unemp_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=unemp_palette, low=0, high=7), ticker=SingleIntervalTicker(interval=.5), title="Unemployment rate (%)",
                      label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
 
-fs_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=palette, low=1, high=(df_stats['pctfoodstamps'].max()*100)), ticker=SingleIntervalTicker(interval=1), title="Food Stamps/SNAP use (%)",
+fs_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=fs_palette, low=0, high=13), ticker=SingleIntervalTicker(interval=1), title="Food Stamps/SNAP use (%)",
                      label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
 
 # adding the legend below each map
