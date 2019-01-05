@@ -19,6 +19,8 @@ df_raw['pcthipi'] = df_raw['pophipiE']/df_raw['totalpopE']
 df_raw['pctother'] = df_raw['popotherE']/df_raw['totalpopE']
 df_raw['pct2ormore'] = df_raw['pop2ormoreE']/df_raw['totalpopE']
 df_raw['pctpoverty'] = df_raw['poppovertyE']/df_raw['totalpopE']
+df_raw['pctfoodstamps'] = df_raw['popfoodstampsE']/df_raw['totalpopE']
+df_raw['unemploymentrate'] = df_raw['popunemploymentE']/df_raw['totalpopE']
 
 # Now df_raw contains a per county percentage for each population group
 
@@ -33,9 +35,7 @@ new_data = "D:\Stadiums Project\df_pcts.csv"
 
 # Checking that all of the % ethnicities add up to 100%, to ensure our method was correct
 
-df_pcts['totalpct'] = df_pcts['pctwhite'] + df_pcts['pctblack'] +
-    df_pcts['pctakna'] + df_pcts['pctasian'] + df_pcts['pcthipi'] +
-    df_pcts['pctother'] + df_pcts['pct2ormore']
+df_pcts['totalpct'] = df_pcts['pctwhite'] + df_pcts['pctblack'] + df_pcts['pctakna'] + df_pcts['pctasian'] + df_pcts['pcthipi'] + df_pcts['pctother'] + df_pcts['pct2ormore']
 
 df_pcts.head()
 
