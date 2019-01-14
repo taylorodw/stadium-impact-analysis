@@ -10,7 +10,8 @@ from bokeh.models.tickers import ContinuousTicker, SingleIntervalTicker
 from bokeh.palettes import viridis
 from bokeh.plotting import figure
 from bokeh.sampledata.us_counties import data as counties
-from bokeh.layouts import row
+from bokeh.models.widgets import Panel, Tabs
+from bokeh.embed import components
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
@@ -201,10 +202,16 @@ fsrate.y_range = poverty.y_range
 
 # citing sources
 citation = Label(x=0, y=0, x_units='screen', y_units='screen', text='Source: US Census American Community Survey', border_line_color=None, background_fill_color='white', background_fill_alpha=0.7)
+citation2 = Label(x=0, y=0, x_units='screen', y_units='screen', text='Source: US Census American Community Survey', border_line_color=None, background_fill_color='white', background_fill_alpha=0.7)
+citation3 = Label(x=0, y=0, x_units='screen', y_units='screen', text='Source: US Census American Community Survey', border_line_color=None, background_fill_color='white', background_fill_alpha=0.7)
 poverty.add_layout(citation)
+unemprate.add_layout(citation2)
+fsrate.add_layout(citation3)
 
+# arranging our maps in tabs
+tab1 = Panel(child=poverty, title='Poverty')
+tab2 = Panel(child=unemprate, title='Unemployment')
+tab3 = Panel(child=fsrate, title='SNAP')
+tabs = Tabs(tabs=[tab1, tab2, tab3])
 
-# arranging our maps in a row
-layout = row(poverty, unemprate, fsrate)
-
-show(layout)
+show(tabs)
