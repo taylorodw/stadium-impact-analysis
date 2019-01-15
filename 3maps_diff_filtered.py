@@ -89,15 +89,15 @@ barclays_label2 = Label(x=-74.52, y=barclays_y, text='Barclays Center', border_l
 barclays_label3 = Label(x=-74.52, y=barclays_y, text='Barclays Center', border_line_color=None, background_fill_color='white', background_fill_alpha=0.7, text_font_size='9pt')
 
 # setting up color mapping to data
-pov_palette = viridis(6)
-unemp_palette = viridis(7)
-fs_palette = viridis(8)
+pov_palette = viridis(7)
+unemp_palette = viridis(9)
+fs_palette = viridis(7)
 fs_palette.reverse()
 unemp_palette.reverse()
 pov_palette.reverse()
-pov_color_mapper = LinearColorMapper(palette=pov_palette, low=-0.004, high=0.02)
-unemp_color_mapper = LinearColorMapper(palette=unemp_palette, low=-0.0035, high=0.0035)
-fs_color_mapper = LinearColorMapper(palette=fs_palette, low=0, high=0.02)
+pov_color_mapper = LinearColorMapper(palette=pov_palette, low=-0.015, high=0.02)
+unemp_color_mapper = LinearColorMapper(palette=unemp_palette, low=-0.015, high=0.03)
+fs_color_mapper = LinearColorMapper(palette=fs_palette, low=-0.004, high=0.03)
 
 # assigning data to dictionary in order to feed them into bokeh
 data=dict(
@@ -177,13 +177,13 @@ fsrate.toolbar.active_scroll = fsrate.select_one(WheelZoomTool)
 unemprate.toolbar.active_scroll = unemprate.select_one(WheelZoomTool)
 
 # making a legend
-pov_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=pov_palette, low=-0.4, high=2), ticker=SingleIntervalTicker(interval=0.4), title="Change in Poverty (%) from 2011 to 2016",
+pov_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=pov_palette, low=-1.5, high=2), ticker=SingleIntervalTicker(interval=0.5), title="Change in Poverty (%) from 2011 to 2016",
                      label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
 
-unemp_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=unemp_palette, low=-0.35, high=0.35), ticker=SingleIntervalTicker(interval=0.1), title="Change in Unemployment rate (%) from 2011 to 2016",
+unemp_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=unemp_palette, low=-1.5, high=3), ticker=SingleIntervalTicker(interval=0.5), title="Change in Unemployment rate (%) from 2011 to 2016",
                      label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
 
-fs_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=fs_palette, low=0, high=2), ticker=SingleIntervalTicker(interval=0.25), title="Change in Food Stamps/SNAP use (%) from 2011 to 2016",
+fs_color_bar = ColorBar(color_mapper=LinearColorMapper(palette=fs_palette, low=-0.5, high=3), ticker=SingleIntervalTicker(interval=0.5), title="Change in Food Stamps/SNAP use (%) from 2011 to 2016",
                      label_standoff=12, width=220, orientation="horizontal", border_line_color=None, location=(0,0))
 
 # adding the label on barclays and legend below each map
