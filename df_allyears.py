@@ -37,6 +37,7 @@ df_2016 = pd.read_csv(file_2016)
 # creating master df, df_allyears
 df_allyears = pd.DataFrame()
 df_allyears['NAME'] = df_2011['NAME']
+df_allyears['name_simple'] = df_2011['NAME'].str.replace(', New York', '')
 
 # poverty
 df_allyears['pov2011'] = df_2011['pctpoverty']
